@@ -162,8 +162,8 @@ function handleHttpRequest(req, res) {
   
   // Handle relative URLs (browser directly accessing proxy)
   if (!req.url.startsWith('http://') && !req.url.startsWith('https://')) {
-    log('WARN', `Invalid proxy request: ${req.url}`);
-    res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+    log('INFO', `Info page request: ${req.url}`);
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`
 <!DOCTYPE html>
 <html>
@@ -181,9 +181,9 @@ function handleHttpRequest(req, res) {
 <body>
   <h1>🔒 SEB MITM Proxy Server</h1>
   
-  <div class="error">
-    <strong>❌ Invalid Request</strong><br>
-    This is a forward proxy server, not a web server.
+  <div class="info">
+    <strong>✅ Proxy is Running</strong><br>
+    This is a forward proxy server for Safe Exam Browser.
   </div>
   
   <div class="info">
