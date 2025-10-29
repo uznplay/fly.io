@@ -1,34 +1,23 @@
-app = "fly-io-zr3wvq"
-primary_region = "sin"
+# fly.toml app configuration file generated for fly-io-zr3wvq on 2025-10-29T14:10:37Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'fly-io-zr3wvq'
+primary_region = 'sin'
 
 [build]
 
-[env]
-  PORT = "8080"
-
-# Không dùng http_service vì đây là TCP proxy, không phải web app
-[[services]]
-  protocol = "tcp"
+[http_service]
   internal_port = 8080
-
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
-
-  [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
-
-  [[services.ports]]
-    port = 8080
-
-  # TCP check - chỉ cần check port có listen không
-  [[services.tcp_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "1s"
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
 
 [[vm]]
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 256
