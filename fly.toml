@@ -1,0 +1,32 @@
+# Fly.io configuration for SEB MITM Proxy
+# https://fly.io/docs/reference/configuration/
+
+app = "seb-proxy-mitm"
+primary_region = "sin"  # Singapore - closest to Vietnam
+
+[build]
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 8080
+  force_https = false
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1
+
