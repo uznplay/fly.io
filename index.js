@@ -1,5 +1,5 @@
 /**
- * Railway Entry Point
+ * Entry Point for Fly.io
  * Generate certificate then start proxy
  */
 
@@ -9,32 +9,37 @@ const path = require('path');
 
 const PORT = process.env.PORT || 8080;
 
-console.log('🚀 SEB Proxy Starting on Railway...');
-console.log('Port:', PORT);
+console.log('🚀 SEB Proxy Starting on Fly.io...');
+console.log('📍 Port:', PORT);
 
 // Check if certificate exists
 const certPath = path.join(__dirname, 'certs', 'ca-cert.pem');
 
-if (!fs.existsSync(certPath)) {
-  console.log('📜 Certificate not found, generating...');
-  
-  // Generate certificate FIRST
-  const setup = spawn('node', ['setup-certificates.js'], {
-    stdio: 'inherit'
+function generateCertificate() {
+  return new Promise((resolve, reject) => {
+    console.log('📜 Generating certificate...');
+    
+    const setup = spawn('node', ['setup-certificates.js'], {
+      stdio: 'inherit'
+    });
+    
+    setup.on('close', (code) => {
+      if (code === 0 || fs.existsSync(certPath)) {
+        console.log('✅ Certificate ready');
+        resolve();
+      } else {
+        console.warn('⚠️ Certificate generation failed, will retry at runtime');
+        // Don't fail, just continue
+        resolve();
+      }
+    });
+    
+    setup.on('error', (err) => {
+      console.warn('⚠️ Certificate generation error:', err.message);
+      // Don't fail, just continue
+      resolve();
+    });
   });
-  
-  setup.on('close', (code) => {
-    if (code === 0 || fs.existsSync(certPath)) {
-      console.log('✅ Certificate ready');
-      startProxy();
-    } else {
-      console.error('❌ Failed to generate certificate');
-      process.exit(1);
-    }
-  });
-} else {
-  console.log('✅ Certificate already exists');
-  startProxy();
 }
 
 function startProxy() {
@@ -64,4 +69,27 @@ function startProxy() {
     proxy.kill('SIGTERM');
     setTimeout(() => process.exit(0), 5000);
   });
+  
+  process.on('SIGINT', () => {
+    console.log('📴 Shutting down...');
+    proxy.kill('SIGINT');
+    setTimeout(() => process.exit(0), 1000);
+  });
 }
+
+async function main() {
+  try {
+    if (!fs.existsSync(certPath)) {
+      await generateCertificate();
+    } else {
+      console.log('✅ Certificate already exists');
+    }
+    
+    startProxy();
+  } catch (err) {
+    console.error('❌ Fatal error:', err);
+    process.exit(1);
+  }
+}
+
+main();
